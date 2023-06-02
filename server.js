@@ -3,8 +3,9 @@ const app = express();
 const mongoose = require('mongoose');
 const userRoutes = require('./src/routes/userRoutes');
 const productRoutes = require('./src/routes/productRoutes');
-
+const bodyParser = require('body-parser');
 app.use(express.json());
+app.use(bodyParser.json());
 app.use("/users",userRoutes)
 app.use("/products",productRoutes)
 

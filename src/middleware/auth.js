@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+require('dotenv').config();
 
 const auth = (req, res, next) => {
 
@@ -10,7 +11,7 @@ const auth = (req, res, next) => {
             return res.status(401).send('Unauthorized')
         }
         let user = jwt.verify(token, process.env.SECRET_KEY);
-        req.userId = userId;
+        console.log(user)
         next();
     } 
    
