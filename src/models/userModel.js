@@ -1,38 +1,19 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-    email: {
+    msId: {
         type: String,
-        required: true
-    },
-    password: {
+        required: true,
+        default: "None",
+      },
+      name:{
         type: String,
-        require: true
-    },
-    dateScheduled: {
-        type: Date,
-        require: false
-    },
-    dateOrdered: {
-        type: Date,
-        require: false
-    },
-    cart : {
-        type: Array,
-        ref: 'Product',
-        require: false
+        required: true,
+        default: "None"
     },
     orders: {
         type: Array,
         ref: 'Product',
-        require: false
-    },
-    approved: {
-        type: Boolean,
-        require: false
-    },
-    role : {
-        type: String,
         require: false
     }
 });

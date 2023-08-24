@@ -1,26 +1,35 @@
-const jwt = require('jsonwebtoken');
-require('dotenv').config();
 
-const auth = (req, res, next) => {
+const dotenv = require("dotenv");
+dotenv.config();
 
-
+module.exports = (options) => {
+  return async (req, res, next) => {
+    const authState = req.body.user || req.user;
+    // console.log(authState); // Add this line
     try {
-        let token= req.headers.authorization.split(' ')[1];
-        if(!token) {
+      if (!options) {
+        
+        res.locals.requester = authState;
 
-            return res.status(401).send('Unauthorized')
-        }
-        let user = jwt.verify(token, process.env.SECRET_KEY);
-        console.log(user)
         next();
-    } 
-   
+      } else {
+        if (options.authLevel == "teacher") {
+          if (authState.user.role != "teacher") {
+            return res
+              .status(401)
+              .json({ error: [{ msg: "You must be a teacher" }] });
+          } else {
+           
+            res.locals.requester = authState;
+           
 
-    catch (err) {
-
-        console.log(err.message)
-        res.status(500).send(error.message)
+            next();
+          }
+        }
+      }
+    } catch (err) {
+      console.log(err.response.data);
+      return res.status(500).json({ error: [{ msg: "Server Error" }] });
     }
-}
-
-module.exports = auth;
+  };
+};
