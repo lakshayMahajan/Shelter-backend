@@ -1,6 +1,7 @@
 const express = require('express');
 const productRoutes = express.Router();
 const Product = require('../models/productModel');
+const Locker = require('../models/lockerModel');
 
 
 //creates a product
@@ -19,6 +20,67 @@ productRoutes.post('/', async(req, res) => {
     catch (err) {
         console.log(err.message)
         res.status(500).send(err.message) // Notice that I've changed `error.message` to `err.message` to reference the correct error object.
+    }
+});
+
+//locker routes
+
+productRoutes.get('/random-locker', async(req, res) => {
+    const currentDate = new Date();
+    let queryDate;
+
+    if (currentDate.getHours() >= 15) { // If it's past 3 PM
+        queryDate = currentDate;
+    } else {
+        currentDate.setDate(currentDate.getDate() - 1); // Set to yesterday
+        queryDate = currentDate;
+    }
+
+    // Convert to YYYY-MM-DD format for comparison
+    const formattedDate = `${queryDate.getFullYear()}-${String(queryDate.getMonth() + 1).padStart(2, '0')}-${String(queryDate.getDate()).padStart(2, '0')}`;
+
+    try {
+        const lockers = await Locker.find({ availability: { $lte: formattedDate } }); // Find lockers with availability less than or equal to the query date
+
+        if (!lockers || lockers.length === 0) {
+            return res.status(404).json({ message: "No available lockers found." });
+        }
+
+        const randomLocker = lockers[Math.floor(Math.random() * lockers.length)]; // Select a random locker
+
+        res.status(200).json(randomLocker);
+    }
+    catch (err) {
+        console.log(err.message);
+        res.status(500).send(err.message);
+    }
+});
+
+productRoutes.put('/update-locker-date/:lockerId', async(req, res) => {
+    const { lockerId } = req.params;
+    const { newDate } = req.body;
+
+    // Validation for the new date
+    if (!newDate) {
+        return res.status(400).json({ message: "Please provide a new date." });
+    }
+
+    try {
+        const updatedLocker = await Locker.findOneAndUpdate(
+            { locker_id: lockerId }, 
+            { availability: newDate }, 
+            { new: true } // This option returns the updated document
+        );
+
+        if (!updatedLocker) {
+            return res.status(404).json({ message: "Locker not found." });
+        }
+
+        res.status(200).json(updatedLocker);
+    }
+    catch (err) {
+        console.log(err.message);
+        res.status(500).send(err.message);
     }
 });
 
