@@ -14,11 +14,11 @@ const lockerSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    availability: {
-        type: Date,
-        required: true
-    }
+    avail: [{
+        type: Date
+    }]
 });
+
 
 const Locker = mongoose.model('Locker', lockerSchema);
 

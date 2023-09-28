@@ -2,24 +2,46 @@ const express = require('express');
 const productRoutes = express.Router();
 const Product = require('../models/productModel');
 const Locker = require('../models/lockerModel');
+const Category = require('../models/categoryModel');
+const FormData = require('../models/formSubmissionModel');
 
+//Gets a category
+productRoutes.post('/', async (req, res) => {
+    const { name } = req.body;
 
-//creates a product
-productRoutes.post('/', async(req, res) => {
-    const { name, quantity, category, image, tags } = req.body;
-
-    // Validation for required fields
-    if (!name || !quantity || !category || !image || !tags) {
-        return res.status(400).json({ message: "Please fill out all required fields." });
+    if (!name) {
+        return res.status(400).json({ message: "Please provide a category name." });
     }
 
     try {
-        const product = await Product.create(req.body);
-        res.status(200).json(product)
+        const category = await Category.create({ name });
+        res.status(201).json(category);
+    } catch (err) {
+        console.log(err.message);
+        res.status(500).send(err.message);
     }
-    catch (err) {
-        console.log(err.message)
-        res.status(500).send(err.message) // Notice that I've changed `error.message` to `err.message` to reference the correct error object.
+});
+
+productRoutes.get('/', async (req, res) => {
+    try {
+        const categories = await Category.find();
+        res.status(200).json(categories);
+    } catch (err) {
+        console.log(err.message);
+        res.status(500).send(err.message);
+    }
+});
+
+productRoutes.delete('/:id', async (req, res) => {
+    try {
+        const category = await Category.findByIdAndDelete(req.params.id);
+        if (!category) {
+            return res.status(404).json({ message: "Category not found." });
+        }
+        res.status(200).json({ message: "Category deleted successfully." });
+    } catch (err) {
+        console.log(err.message);
+        res.status(500).send(err.message);
     }
 });
 
@@ -27,27 +49,23 @@ productRoutes.post('/', async(req, res) => {
 
 productRoutes.get('/random-locker', async(req, res) => {
     const currentDate = new Date();
-    let queryDate;
-
-    if (currentDate.getHours() >= 15) { // If it's past 3 PM
-        queryDate = currentDate;
-    } else {
-        currentDate.setDate(currentDate.getDate() - 1); // Set to yesterday
-        queryDate = currentDate;
-    }
-
-    // Convert to YYYY-MM-DD format for comparison
-    const formattedDate = `${queryDate.getFullYear()}-${String(queryDate.getMonth() + 1).padStart(2, '0')}-${String(queryDate.getDate()).padStart(2, '0')}`;
+    currentDate.setHours(0, 0, 0, 0); // set the time to 00:00:00
 
     try {
-        const lockers = await Locker.find({ availability: { $lte: formattedDate } }); // Find lockers with availability less than or equal to the query date
+        // Find lockers with no availability date or a past availability date
+        const lockers = await Locker.find({
+            $or: [
+                { availability: { $exists: false } },
+                { availability: { $lte: currentDate } }
+            ]
+        });
 
         if (!lockers || lockers.length === 0) {
             return res.status(404).json({ message: "No available lockers found." });
         }
 
-        const randomLocker = lockers[Math.floor(Math.random() * lockers.length)]; // Select a random locker
-
+        // Select a random locker from the available lockers
+        const randomLocker = lockers[Math.floor(Math.random() * lockers.length)];
         res.status(200).json(randomLocker);
     }
     catch (err) {
@@ -66,9 +84,10 @@ productRoutes.put('/update-locker-date/:lockerId', async(req, res) => {
     }
 
     try {
-        const updatedLocker = await Locker.findOneAndUpdate(
-            { locker_id: lockerId }, 
-            { availability: newDate }, 
+        // Using _id to find the locker
+        const updatedLocker = await Locker.findByIdAndUpdate(
+            lockerId, 
+            { availability: new Date(newDate) }, // convert newDate to a Date object
             { new: true } // This option returns the updated document
         );
 
@@ -79,6 +98,24 @@ productRoutes.put('/update-locker-date/:lockerId', async(req, res) => {
         res.status(200).json(updatedLocker);
     }
     catch (err) {
+        console.log(err.message);
+        res.status(500).send(err.message);
+    }
+});
+
+productRoutes.get('/getForm/:userId', async (req, res) => {
+    const {userId} = req.params;
+
+    try {
+        console.log(userId);
+        const forms = await FormData.find({ user: userId });
+
+        if (!forms || forms.length === 0) {
+            return res.status(404).json({ message: "No forms found for the given user." });
+        }
+
+        res.status(200).json(forms);
+    } catch (err) {
         console.log(err.message);
         res.status(500).send(err.message);
     }

@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router()
 const User = require('../models/userModel');
 const Order = require('../models/orderModel');
+const FormSubmission = require('../models/formSubmissionModel');
 const { signUp, signIn } = require('../controller/userController');
 const auth  = require('../middleware/auth');
 
@@ -34,6 +35,53 @@ router.post("/", auth(), async (req,res)=>{
     
 
 })
+router.post('/createForm', async (req, res) => {
+  const { categories, note, user,date } = req.body;
+
+  if (!categories || categories.length === 0 || !note) {
+      return res.status(400).json({ message: "Please provide categories and a note." });
+  }
+
+  try {
+      const formSubmission = await FormSubmission.create({ categories, note, user,date });
+      res.status(201).json(formSubmission);
+  } catch (err) {
+      console.log(err.message);
+      res.status(500).send(err.message);
+  }
+});
+
+router.get('/forms', async (req, res) => {
+  try {
+      const formSubmissions = await FormSubmission.find();
+      res.status(200).json(formSubmissions);
+  } catch (err) {
+      console.log(err.message);
+      res.status(500).send(err.message);
+  }
+});
+
+router.patch('/forms/:id', async (req, res) => {
+  const { id } = req.params;
+  const { date, approved, locker } = req.body;
+
+  try {
+    const updatedForm = await FormSubmission.findByIdAndUpdate(
+      id,
+      { date, approved, locker },
+      { new: true }
+    );
+
+    if (!updatedForm) {
+      return res.status(404).json({ message: 'Form not found.' });
+    }
+
+    res.status(200).json(updatedForm);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send(err.message);
+  }
+});
 
 router.post('/order', async(req, res) => {
     const { items, user, date, status, approved, order } = req.body;
