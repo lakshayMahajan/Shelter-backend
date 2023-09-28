@@ -104,7 +104,7 @@ productRoutes.put('/update-locker-date/:lockerId', async(req, res) => {
 });
 
 productRoutes.get('/getForm/:userId', async (req, res) => {
-    const {userId} = req.params;
+    const userId = req.params.userId;
 
     try {
         console.log(userId);
@@ -120,6 +120,7 @@ productRoutes.get('/getForm/:userId', async (req, res) => {
         res.status(500).send(err.message);
     }
 });
+
 
 
 //gets all products

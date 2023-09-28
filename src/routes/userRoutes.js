@@ -63,12 +63,13 @@ router.get('/forms', async (req, res) => {
 
 router.patch('/forms/:id', async (req, res) => {
   const { id } = req.params;
-  const { date, approved, locker } = req.body;
+  const { date, approved, locker,note } = req.body;
 
   try {
+    console.log(id);
     const updatedForm = await FormSubmission.findByIdAndUpdate(
       id,
-      { date, approved, locker },
+      { date, approved, locker,note },
       { new: true }
     );
 
