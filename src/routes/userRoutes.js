@@ -63,13 +63,35 @@ router.get('/forms', async (req, res) => {
 
 router.patch('/forms/:id', async (req, res) => {
   const { id } = req.params;
-  const { date, approved, locker,note } = req.body;
+  const { date, approved, locker,note,teacherNote } = req.body;
 
   try {
     console.log(id);
     const updatedForm = await FormSubmission.findByIdAndUpdate(
       id,
-      { date, approved, locker,note },
+      { date, approved, locker,note,teacherNote },
+      { new: true }
+    );
+
+    if (!updatedForm) {
+      return res.status(404).json({ message: 'Form not found.' });
+    }
+
+    res.status(200).json(updatedForm);
+  } catch (err) {
+    console.log(err.message);
+    res.status(500).send(err.message);
+  }
+});
+router.patch('/forms/teacher/:id', async (req, res) => {
+  const { id } = req.params;
+  const { date, approved, locker,teacherNote } = req.body;
+
+  try {
+    console.log(id);
+    const updatedForm = await FormSubmission.findByIdAndUpdate(
+      id,
+      { date, approved, locker,teacherNote },
       { new: true }
     );
 

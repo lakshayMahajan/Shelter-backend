@@ -10,6 +10,10 @@ const formSubmissionSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    teacherNote:{
+        type: String,
+        required: false
+    },
     approved: {
         type: Boolean,
         default: false // Default value is false
