@@ -14,9 +14,11 @@ const lockerSchema = new mongoose.Schema({
         type: String,
         required: true
     },
-    avail: [{
-        type: Date
-    }]
+    avail: {
+        type: Boolean,
+        required: true,
+        default: true
+    }
 });
 
 

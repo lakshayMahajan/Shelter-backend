@@ -15,7 +15,14 @@ const userSchema = new mongoose.Schema({
         type: Array,
         ref: 'Product',
         require: false
+    },
+    locker: {
+        type: String,
+        ref: 'Locker',
+        required: false,
+        default: "None"
     }
+    
 });
 
 const User = mongoose.model('User', userSchema);

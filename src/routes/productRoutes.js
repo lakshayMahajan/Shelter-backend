@@ -48,17 +48,9 @@ productRoutes.delete('/:id', async (req, res) => {
 //locker routes
 
 productRoutes.get('/random-locker', async(req, res) => {
-    const currentDate = new Date();
-    currentDate.setHours(0, 0, 0, 0); // set the time to 00:00:00
-
     try {
-        // Find lockers with no availability date or a past availability date
-        const lockers = await Locker.find({
-            $or: [
-                { availability: { $exists: false } },
-                { availability: { $lte: currentDate } }
-            ]
-        });
+        // Find lockers where availability is false
+        const lockers = await Locker.find({ availability: true });
 
         if (!lockers || lockers.length === 0) {
             return res.status(404).json({ message: "No available lockers found." });
@@ -66,6 +58,11 @@ productRoutes.get('/random-locker', async(req, res) => {
 
         // Select a random locker from the available lockers
         const randomLocker = lockers[Math.floor(Math.random() * lockers.length)];
+
+        // Set the availability of the selected locker to false
+        randomLocker.availability = false;
+        await randomLocker.save();
+
         res.status(200).json(randomLocker);
     }
     catch (err) {
@@ -73,6 +70,8 @@ productRoutes.get('/random-locker', async(req, res) => {
         res.status(500).send(err.message);
     }
 });
+
+
 
 productRoutes.put('/update-locker-date/:lockerId', async(req, res) => {
     const { lockerId } = req.params;

@@ -36,14 +36,14 @@ router.post("/", auth(), async (req,res)=>{
 
 })
 router.post('/createForm', async (req, res) => {
-  const { categories, note, user,date } = req.body;
+  const { categories, note, user,date,locker } = req.body;
 
   if (!categories || categories.length === 0 || !note) {
       return res.status(400).json({ message: "Please provide categories and a note." });
   }
 
   try {
-      const formSubmission = await FormSubmission.create({ categories, note, user,date });
+      const formSubmission = await FormSubmission.create({ categories, note, user,date,locker });
       res.status(201).json(formSubmission);
   } catch (err) {
       console.log(err.message);
