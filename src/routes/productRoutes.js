@@ -47,6 +47,25 @@ productRoutes.delete('/:id', async (req, res) => {
 
 //locker routes
 
+
+
+productRoutes.get('/locker/:userId', async (req, res) => {
+    const userId = req.params.userId;
+
+    try {
+        const forms = await Locker.find({ user: userId });
+
+        if (!forms || forms.length === 0) {
+            return res.status(404).json({ message: "No forms found for the given user." });
+        }
+
+        res.status(200).json(forms);
+    } catch (err) {
+        console.log(err.message);
+        res.status(500).send(err.message);
+    }
+});
+
 productRoutes.get('/random-locker', async(req, res) => {
     try {
         // Find lockers where availability is false
@@ -107,7 +126,8 @@ productRoutes.get('/getForm/:userId', async (req, res) => {
 
     try {
         console.log(userId);
-        const forms = await FormData.find({ user: userId });
+        // Use populate to include locker details
+        const forms = await FormData.find({ user: userId }).populate('locker');
 
         if (!forms || forms.length === 0) {
             return res.status(404).json({ message: "No forms found for the given user." });
@@ -119,6 +139,7 @@ productRoutes.get('/getForm/:userId', async (req, res) => {
         res.status(500).send(err.message);
     }
 });
+
 
 
 
@@ -136,21 +157,21 @@ productRoutes.get('/', async(req, res) => {
 
 
 //gets a product by id
-productRoutes.get('/:id', async(req, res) => {
-    try {
-        const  {id} = req.params;
-        const product = await Product.findById(id);
+// productRoutes.get('/:id', async(req, res) => {
+//     try {
+//         const  {id} = req.params;
+//         const product = await Product.findById(id);
         
-        if(!product) {
-            res.status(404).send('Product not found with that id')
-        }
-        res.status(200).json(product)
-    }
-    catch (err) {
-        console.log(err.message)
-        res.status(500).send(error.message)
-    }
-})
+//         if(!product) {
+//             res.status(404).send('Product not found with that id')
+//         }
+//         res.status(200).json(product)
+//     }
+//     catch (err) {
+//         console.log(err.message)
+//         res.status(500).send(error.message)
+//     }
+// })
 
 //update a product by id
 productRoutes.put('/:id', async(req, res) => {

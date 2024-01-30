@@ -53,7 +53,7 @@ router.post('/createForm', async (req, res) => {
 
 router.get('/forms', async (req, res) => {
   try {
-      const formSubmissions = await FormSubmission.find();
+      const formSubmissions = await FormSubmission.find().populate('locker');
       res.status(200).json(formSubmissions);
   } catch (err) {
       console.log(err.message);
