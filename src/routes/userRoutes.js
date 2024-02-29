@@ -16,8 +16,12 @@ router.post("/", auth(), async (req,res)=>{
     try{
       const orderData = await User.findOne({
         msId: requester.user.localAccountId,
-      }) 
-    
+      })  
+      console.log(orderData);
+      // const adminData = await User.findOne({
+      //   email: requester.user.localAccountId,
+      // })
+  
 
       if(orderData){
         return res.json({...requester, orderData})
@@ -35,8 +39,26 @@ router.post("/", auth(), async (req,res)=>{
     
 
 })
+router.get("/users", auth(), async (req,res)=>{
+
+  const {requester} = res.locals
+  try{
+    const userData = await User.find()
+    return res.status(200).json(userData)
+  } catch(err){
+    console.log(err)
+    return res.json({'errors': [{"msg": "Server Error"}]}).status(500)
+  }
+
+
+})
 router.post('/createForm', async (req, res) => {
   const { categories, note, user,date,locker } = req.body;
+  const nameGen = await User.findOne({
+    msId: user,
+  }) 
+
+  
 
   if (!categories || categories.length === 0 || !note) {
       return res.status(400).json({ message: "Please provide categories and a note." });
@@ -53,13 +75,31 @@ router.post('/createForm', async (req, res) => {
 
 router.get('/forms', async (req, res) => {
   try {
-      const formSubmissions = await FormSubmission.find().populate('locker');
-      res.status(200).json(formSubmissions);
+      // Fetch all form submissions and populate 'locker' field
+      let formSubmissions = await FormSubmission.find().populate('locker');
+
+      // Convert formSubmissions to a plain JavaScript object array to modify
+      formSubmissions = formSubmissions.map(submission => submission.toObject());
+
+      // Fetch and attach user details for each form submission
+      const submissionsWithUsers = await Promise.all(formSubmissions.map(async (submission) => {
+          const user = await User.findOne({ msId: submission.user }).lean(); // Use .lean() for performance if you only need plain JavaScript objects
+          if (user) {
+              submission.userDetails = user; // Attach user details
+          } else {
+              submission.userDetails = null; // Or handle how you prefer if user not found
+          }
+          return submission;
+      }));
+
+      res.status(200).json(submissionsWithUsers);
   } catch (err) {
       console.log(err.message);
       res.status(500).send(err.message);
   }
 });
+
+
 
 router.patch('/forms/:id', async (req, res) => {
   const { id } = req.params;

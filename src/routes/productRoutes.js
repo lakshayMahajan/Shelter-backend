@@ -4,6 +4,70 @@ const Product = require('../models/productModel');
 const Locker = require('../models/lockerModel');
 const Category = require('../models/categoryModel');
 const FormData = require('../models/formSubmissionModel');
+const Admin = require('../models/adminModel');
+const FormSubmission = require('../models/formSubmissionModel');
+
+
+
+productRoutes.post('/admin', async (req, res) => {
+    const { msId,name } = req.body;
+
+    if (!msId||!name) {
+        return res.status(400).json({ message: "Try again later." });
+    }
+ 
+    try {
+        const admin = await Admin.findOne({ msId });
+        if (admin) {
+            return res.status(400).json({ message: "Admin already exists." });
+        }else{
+            const admin = await Admin.create({ msId,name });
+            admin.save();
+            res.status(201).json(admin);
+        }
+       
+    } catch (err) {
+        console.log(err.message);
+        res.status(500).send(err.message);
+    }
+});
+
+productRoutes.get('/admin', async (req, res) => {
+    try {
+        const categories = await Admin.find();
+        res.status(200).json(categories);
+    } catch (err) {
+        console.log(err.message);
+        res.status(500).send(err.message);
+    }
+});
+productRoutes.get('/admin/:id', async (req, res) => {
+    try {
+        const student =  await Admin.findOne({
+            msId: req.params.id,
+          })  
+        if (!student) {
+            return res.status(404);
+        }
+        res.status(200).json({ found: true, student});
+    } catch (err) {
+        console.log(err.message);
+        res.status(500).send(err.message);
+    }
+});
+productRoutes.delete('/admin/:id', async (req, res) => {
+    try {
+        const student = await Admin.findByIdAndDelete(req.params.id);
+        if (!student) {
+            return res.status(404).json({ message: "Student not found." });
+        }
+        res.status(200).json({ message: "Student deleted successfully." });
+    } catch (err) {
+        console.log(err.message);
+        res.status(500).send(err.message);
+    }
+});
+
 
 //Gets a category
 productRoutes.post('/', async (req, res) => {
@@ -125,10 +189,10 @@ productRoutes.get('/getForm/:userId', async (req, res) => {
     const userId = req.params.userId;
 
     try {
-        console.log(userId);
+       
         // Use populate to include locker details
         const forms = await FormData.find({ user: userId }).populate('locker');
-
+        console.log(forms);
         if (!forms || forms.length === 0) {
             return res.status(404).json({ message: "No forms found for the given user." });
         }
@@ -192,18 +256,19 @@ productRoutes.put('/:id', async(req, res) => {
 
 //delete a product by id
 
-productRoutes.delete('/products/:id', async(req, res) => {
-    try{
-        const {id} = req.params;
-        const product = await Product.findByIdAndDelete(id);
-        if(!product) {
-            res.status(404).send('product not found with that id')
+productRoutes.delete('/prod/:id', async(req, res) => {
+    try {
+        const id = req.params.id;
+        console.log(id);
+        const category = await FormSubmission.findByIdAndDelete(id);
+        console.log(category);
+        if (!category) {
+            return res.status(404).json({ message: "Product not found." });
         }
-        res.status(200).json(product)
-    }
-    catch (err) {
-        console.log(err.message)
-        res.status(500).send(error.message)
+        res.status(200).json({ message: "Product deleted successfully." });
+    } catch (err) {
+        console.log(err.message);
+        res.status(500).send(err.message);
     }
 
 })

@@ -30,7 +30,7 @@ const formSubmissionSchema = new mongoose.Schema({
     user: {
         type: String,
         required: true
-    }
+    },
 });
 
 const FormSubmission = mongoose.model('FormSubmission', formSubmissionSchema);

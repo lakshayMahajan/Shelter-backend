@@ -20,7 +20,11 @@ const orderSchema = new mongoose.Schema({
     approved: {
         type: Boolean,
         require: false
-    }
+    },
+    name:{
+        type: String,
+        require: true
+    },
 });
 
 const Order = mongoose.model('Order', orderSchema);
